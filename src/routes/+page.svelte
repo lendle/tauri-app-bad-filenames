@@ -1,9 +1,7 @@
 <script lang="ts">
   import { invoke } from "@tauri-apps/api/core";
-  import { getCurrentWindow } from "@tauri-apps/api/window";
   import { exists } from "@tauri-apps/plugin-fs";
-  import { onMount } from "svelte";
-
+  import { open } from "@tauri-apps/plugin-dialog";
   let name = $state("");
   let greetMsg = $state("");
 
@@ -13,21 +11,31 @@
     greetMsg = await invoke("greet", { name });
   }
 
-  onMount(() => {
-    const unlistenPromise = getCurrentWindow().onDragDropEvent((event) => {
-      if (event.payload.type === "drop") {
-        const paths = event.payload.paths;
-        console.log("User dropped", paths);
+  const pickFile = async () => {
+    const paths = await open({ multiple: true });
 
-        for (const path of paths) {
-          exists(path)
-            .then((ex) => console.log(path, "exists? ", ex))
-            .catch(console.error);
-        }
-      }
-    });
-    return () => unlistenPromise.then((unlisten) => unlisten());
-  });
+    for (const path of paths ?? []) {
+      exists(path)
+        .then((ex) => console.log(path, "exists? ", ex))
+        .catch(console.error);
+    }
+  };
+
+  // onMount(() => {
+  //   const unlistenPromise = getCurrentWindow().onDragDropEvent((event) => {
+  //     if (event.payload.type === "drop") {
+  //       const paths = event.payload.paths;
+  //       console.log("User dropped", paths);
+
+  //       // for (const path of paths) {
+  //       //   exists(path)
+  //       //     .then((ex) => console.log(path, "exists? ", ex))
+  //       //     .catch(console.error);
+  //       // }
+  //     }
+  //   });
+  //   return () => unlistenPromise.then((unlisten) => unlisten());
+  // });
 </script>
 
 <main class="container">
@@ -51,6 +59,8 @@
     <button type="submit">Greet</button>
   </form>
   <p>{greetMsg}</p>
+
+  <button onclick={pickFile}>Click me</button>
 </main>
 
 <style>
