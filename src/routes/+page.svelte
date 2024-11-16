@@ -1,66 +1,38 @@
 <script lang="ts">
-  import { invoke } from "@tauri-apps/api/core";
   import { exists } from "@tauri-apps/plugin-fs";
   import { open } from "@tauri-apps/plugin-dialog";
-  let name = $state("");
-  let greetMsg = $state("");
 
-  async function greet(event: Event) {
-    event.preventDefault();
-    // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-    greetMsg = await invoke("greet", { name });
-  }
+  let path: string | null = null;
+  let msg = "";
+  let error = "";
 
   const pickFile = async () => {
-    const paths = await open({ multiple: true });
+    path = await open();
 
-    for (const path of paths ?? []) {
-      exists(path)
-        .then((ex) => console.log(path, "exists? ", ex))
-        .catch(console.error);
+    if (path) {
+      try {
+        const pathExists = await exists(path);
+        msg = `${path} exists: ${pathExists}`;
+        error = "";
+      } catch (e) {
+        msg = "";
+        error = JSON.stringify(e);
+      }
+    } else {
+      msg = "";
+      error = "";
     }
   };
-
-  // onMount(() => {
-  //   const unlistenPromise = getCurrentWindow().onDragDropEvent((event) => {
-  //     if (event.payload.type === "drop") {
-  //       const paths = event.payload.paths;
-  //       console.log("User dropped", paths);
-
-  //       // for (const path of paths) {
-  //       //   exists(path)
-  //       //     .then((ex) => console.log(path, "exists? ", ex))
-  //       //     .catch(console.error);
-  //       // }
-  //     }
-  //   });
-  //   return () => unlistenPromise.then((unlisten) => unlisten());
-  // });
 </script>
 
 <main class="container">
-  <h1>Welcome to Tauri + Svelte</h1>
-
-  <div class="row">
-    <a href="https://vitejs.dev" target="_blank">
-      <img src="/vite.svg" class="logo vite" alt="Vite Logo" />
-    </a>
-    <a href="https://tauri.app" target="_blank">
-      <img src="/tauri.svg" class="logo tauri" alt="Tauri Logo" />
-    </a>
-    <a href="https://kit.svelte.dev" target="_blank">
-      <img src="/svelte.svg" class="logo svelte-kit" alt="SvelteKit Logo" />
-    </a>
-  </div>
-  <p>Click on the Tauri, Vite, and SvelteKit logos to learn more.</p>
-
-  <form class="row" onsubmit={greet}>
-    <input id="greet-input" placeholder="Enter a name..." bind:value={name} />
-    <button type="submit">Greet</button>
-  </form>
-  <p>{greetMsg}</p>
-
   <button onclick={pickFile}>Click me</button>
+
+  <pre>
+path: {path}
+msg: {msg}
+error: {error}
+  </pre>
 </main>
 
 <style>
