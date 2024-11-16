@@ -13,14 +13,16 @@
     greetMsg = await invoke("greet", { name });
   }
 
-
   onMount(() => {
     const unlistenPromise = getCurrentWindow().onDragDropEvent((event) => {
       if (event.payload.type === "drop") {
         const paths = event.payload.paths;
         console.log("User dropped", paths);
+
         for (const path of paths) {
-          exists(path).then((ex) => console.log(path, "exists? ", ex));
+          exists(path)
+            .then((ex) => console.log(path, "exists? ", ex))
+            .catch(console.error);
         }
       }
     });
